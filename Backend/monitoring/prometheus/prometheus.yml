@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'fitness-tracker'
+
+rule_files:
+  - 'alerts.yml'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'fitness-tracker'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets: ['app:8080']
+    metrics_path: '/metrics'
+
+  - job_name: 'fitness-worker'
+    static_configs:
+      - targets: ['worker:9091']
+    metrics_path: '/metrics'
+
+  - job_name: 'exercise-lib'
+    static_configs:
+      - targets: ['exercise-lib:8000']
+    metrics_path: '/metrics'

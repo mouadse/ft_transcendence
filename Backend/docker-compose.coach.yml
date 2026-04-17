@@ -1,0 +1,31 @@
+services:
+  coach-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.coach
+    container_name: fitness-coach-ui
+    ports:
+      - "${COACH_UI_HOST_PORT:-8503}:8501"
+    environment:
+      - BASE_URL=https://app:8080/v1
+      - VERIFY_TLS=0
+      - EXERCISE_LIB_URL=http://exercise-lib:8000
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-google/gemini-2.0-flash-001}
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501', timeout=2)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    init: true
+    networks:
+      - fitness-network
+
+networks:
+  fitness-network:
+    # No 'external: true' here because we merge with docker-compose.yml which defines it.
