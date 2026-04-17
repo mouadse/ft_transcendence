@@ -31,6 +31,6 @@ AgentSkills.worktrees
 # Backend
 
 command_claude.txt
-
+.codex
 #Envirement file 
 .env
