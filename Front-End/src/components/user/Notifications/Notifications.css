@@ -1,0 +1,149 @@
+.notifs-root {
+  min-height: 100%;
+  background: #f6f3ee;
+  color: #2e2f2e;
+}
+
+.notifs-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: rgba(246, 243, 238, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2ddd2;
+}
+
+.notifs-back {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2e2f2e;
+  cursor: pointer;
+}
+
+.notifs-title {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.notifs-mark-all {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #38671a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.notifs-mark-all:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notifs-main {
+  padding: 12px 16px 100px;
+  display: grid;
+  gap: 10px;
+}
+
+.notifs-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #dad4c8;
+  border-left: 4px solid #38671a;
+  border-radius: 14px;
+}
+
+.notifs-item--read {
+  border-left-color: #dad4c8;
+  opacity: 0.9;
+}
+
+.notifs-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifs-item-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.notifs-item-message {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #5a5a56;
+  overflow-wrap: anywhere;
+}
+
+.notifs-item-time {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #9a9488;
+}
+
+.notifs-item-action {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #c3fb9c;
+  color: #214f01;
+  cursor: pointer;
+}
+
+.notifs-empty {
+  margin: 24px 4px;
+  font-size: 14px;
+  color: #767775;
+}
+
+@media (max-width: 420px) {
+  .notifs-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 12px;
+  }
+
+  .notifs-title {
+    order: 2;
+    width: 100%;
+    font-size: 18px;
+  }
+
+  .notifs-mark-all {
+    order: 3;
+    width: 100%;
+  }
+
+  .notifs-main {
+    padding: 10px 12px 92px;
+  }
+
+  .notifs-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notifs-item-action {
+    width: 100%;
+  }
+}

@@ -1,0 +1,433 @@
+.adm-nut-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.adm-nut-hero {
+  padding: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr);
+  gap: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(195, 251, 156, 0.55), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(180, 165, 255, 0.25), transparent 34%),
+    #fffdf8;
+}
+
+.adm-nut-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.adm-nut-kicker {
+  margin: 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #38671a;
+}
+
+.adm-nut-hero-title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1;
+  letter-spacing: -1.8px;
+}
+
+.adm-nut-hero-body {
+  margin: 0;
+  max-width: 60ch;
+  color: #5b5c5a;
+  line-height: 1.6;
+}
+
+.adm-nut-hero-body code {
+  background: rgba(46, 47, 46, 0.06);
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.adm-nut-hero-chips {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+}
+
+.adm-nut-metrics {
+  margin-top: 4px;
+}
+
+.adm-nut-metric-text {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.adm-nut-analytics {
+  align-items: stretch;
+}
+
+.adm-nut-analytic-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.adm-nut-analytic-card--accent {
+  background:
+    linear-gradient(180deg, rgba(255, 250, 240, 0.88), rgba(255, 255, 255, 0.98)),
+    #fff;
+}
+
+.adm-nut-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adm-nut-section-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.adm-nut-stack-list,
+.adm-nut-popular-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.adm-nut-stack-row,
+.adm-nut-popular-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-nut-stack-meta,
+.adm-nut-popular-row {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.adm-nut-stack-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adm-nut-stack-track,
+.adm-nut-popular-bar {
+  width: 100%;
+  height: 12px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #ece7df;
+}
+
+.adm-nut-stack-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #38671a, #7aaa3d);
+}
+
+.adm-nut-popular-name {
+  margin: 0;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+}
+
+.adm-nut-popular-count {
+  margin: 3px 0 0;
+  color: #6a665d;
+}
+
+.adm-nut-popular-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #5d3fd3, #9d79ff);
+}
+
+.adm-nut-empty-card {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.adm-nut-empty-icon {
+  font-size: 28px;
+  color: #38671a;
+}
+
+.adm-nut-empty-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.adm-nut-empty-copy {
+  margin: 0;
+  color: #5b5c5a;
+  line-height: 1.5;
+}
+
+.adm-nut-table-shell {
+  overflow: hidden;
+}
+
+.adm-nut-table-toolbar {
+  padding: 20px 24px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.adm-nut-toolbar-search {
+  flex: 1;
+  min-width: 240px;
+}
+
+.adm-nut-category-input {
+  width: 220px;
+}
+
+.adm-nut-inline-error {
+  margin: 16px 24px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(176, 37, 0, 0.22);
+  border-radius: 12px;
+  background: rgba(176, 37, 0, 0.06);
+  color: #8f2508;
+  font-size: 13px;
+}
+
+.adm-nut-table-header {
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 2px dashed #dad4c8;
+}
+
+.adm-nut-food-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.adm-nut-food-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 2px solid #dad4c8;
+  background: linear-gradient(135deg, #f3f8ec, #fef0e2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38671a;
+  flex-shrink: 0;
+}
+
+.adm-nut-food-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.adm-nut-food-meta {
+  margin: 2px 0 0;
+  color: #6e685f;
+  font-size: 12px;
+}
+
+.adm-nut-macro-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.adm-nut-macro-total {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #6e685f;
+}
+
+.adm-nut-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.adm-nut-pagination {
+  padding: 18px 24px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #ebe5da;
+}
+
+.adm-nut-modal {
+  max-width: 720px;
+}
+
+.adm-nut-modal-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.adm-nut-modal-desc {
+  margin: 0;
+  color: #5b5c5a;
+  line-height: 1.6;
+}
+
+.adm-nut-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.adm-nut-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adm-nut-macro-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.adm-nut-field-unit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-nut-field-unit input {
+  flex: 1;
+}
+
+.adm-nut-field-unit span {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5b5c5a;
+}
+
+@media (max-width: 1100px) {
+  .adm-nut-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .adm-nut-macro-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-nut-table-toolbar,
+  .adm-nut-table-header,
+  .adm-nut-pagination {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Toolbar: stack controls vertically */
+  .adm-nut-table-toolbar {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 16px;
+  }
+
+  .adm-nut-category-input,
+  .adm-nut-toolbar-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .adm-nut-macro-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Table header: stack title and count badge */
+  .adm-nut-table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Pagination: center on mobile */
+  .adm-nut-pagination {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Table scroll on mobile ────────────────────────────────────── */
+@media (max-width: 767px) {
+  .adm-nut-table-shell {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hero: tighten padding on mobile */
+  .adm-nut-hero {
+    padding: 18px;
+    gap: 16px;
+  }
+
+  /* Hero text: compress */
+  .adm-nut-hero-title {
+    font-size: clamp(22px, 6vw, 32px);
+    letter-spacing: -1.2px;
+  }
+
+  /* Analytic cards: less padding */
+  .adm-nut-analytic-card {
+    padding: 18px;
+    gap: 14px;
+  }
+
+  /* Section title: scale down */
+  .adm-nut-section-title {
+    font-size: 20px;
+    letter-spacing: -0.6px;
+  }
+}
+
+/* ── Small phone: hero fully stacked ──────────────────────────── */
+@media (max-width: 479px) {
+  .adm-nut-hero {
+    padding: 14px;
+  }
+
+  .adm-nut-hero-body {
+    font-size: 14px;
+  }
+
+  .adm-nut-metric-text {
+    font-size: 22px;
+  }
+}

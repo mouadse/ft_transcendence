@@ -1,0 +1,386 @@
+/* ══════════════════════════════════════════════════════
+   Custom Food  (cf-*)
+   ══════════════════════════════════════════════════════ */
+
+.cf-root {
+  min-height: 100dvh;
+  background: #faf9f7;
+  color: #2e2f2e;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding-bottom: 190px;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.cf-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #faf9f7;
+  border-bottom: 2px dashed #dad4c8;
+  box-shadow: -7px 7px 0 rgba(46, 47, 46, 1);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cf-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cf-back-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e8e2d6;
+  justify-content: center;
+}
+
+.cf-back-btn:hover {
+  transform: rotate(-8deg) translateY(-2px);
+}
+
+.cf-header-title {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -1px;
+  color: #38671a;
+  text-transform: uppercase;
+}
+
+.cf-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #38671a;
+  background: #b4a5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Main ───────────────────────────────────────────── */
+.cf-main {
+  padding: 100px 20px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Hero ───────────────────────────────────────────── */
+.cf-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.cf-hero-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px dashed #38671a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c3fb9c;
+  color: #38671a;
+  margin-bottom: 8px;
+}
+
+.cf-hero-icon span {
+  font-size: 32px;
+}
+
+.cf-hero-title {
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -2px;
+  color: #2e2f2e;
+  line-height: 1;
+}
+
+.cf-hero-desc {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5b5c5a;
+  max-width: 250px;
+}
+
+/* ── Form Canvas ───────────────────────────────────── */
+.cf-form-card {
+  background: #fff;
+  border: 2px solid #dad4c8;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: -7px 7px 0 rgba(46, 47, 46, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.cf-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cf-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cf-section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #38671a;
+  font-weight: 700;
+}
+
+.cf-serving-chip {
+  background: #e8e2d6;
+  color: #555148;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #dad4c8;
+}
+
+.cf-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cf-serving-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .cf-serving-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cf-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2e2f2e;
+}
+
+.cf-input {
+  width: 100%;
+  background: #fdfcfb;
+  border: 2px solid #dad4c8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #2e2f2e;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cf-input::placeholder {
+  color: #aaa;
+}
+
+.cf-input:focus {
+  border-color: #38671a;
+  box-shadow: -3px 3px 0 rgba(46, 47, 46, 1);
+}
+
+/* Macros Grid */
+.cf-macros-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 480px) {
+  .cf-macros-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cf-input-group--macro {
+  background: #f1f1ef;
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px dashed #dad4c8;
+}
+
+.cf-input-group--kcal {
+  background: #c3fb9c;
+  border-color: #38671a;
+  border-style: solid;
+}
+
+.cf-macro-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.cf-input--large {
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -1px;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 2px solid #dad4c8;
+  border-radius: 0;
+  background: transparent;
+  color: #2e2f2e;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.cf-input-group--kcal .cf-input--large {
+  border-bottom-color: #38671a;
+}
+
+.cf-input--large:focus {
+  border-color: #2e2f2e;
+  box-shadow: none;
+}
+
+.cf-input--large::-webkit-outer-spin-button,
+.cf-input--large::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.cf-input-unit {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5b5c5a;
+}
+
+.cf-input-group--kcal .cf-input-unit {
+  color: #38671a;
+}
+
+.cf-error {
+  color: #b02500;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+  margin: -8px 0 0;
+}
+
+
+/* ── Sticky CTA ─────────────────────────────────────── */
+.cf-sticky-cta {
+  position: fixed;
+  bottom: 92px;
+  left: 0;
+  right: 0;
+  padding: 12px 20px 14px;
+  background: rgba(250, 249, 247, 0.9);
+  backdrop-filter: blur(16px);
+  border-top: 2px solid #dad4c8;
+  z-index: 50;
+}
+
+.cf-cta-inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.cf-save-btn {
+  width: 100%;
+  padding: 18px;
+  background: #5d3fd3;
+  /* Tertiary color from theme */
+  color: #f6f0ff;
+  border: none;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: -7px 7px 0 rgba(46, 47, 46, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.cf-save-btn:hover:not(:disabled) {
+  transform: rotate(-2deg) translateY(-2px);
+}
+
+.cf-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (min-width: 992px) {
+  .cf-main {
+    max-width: 1040px;
+    padding: 112px 28px 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  .cf-hero {
+    align-items: flex-start;
+    text-align: left;
+    position: sticky;
+    top: 124px;
+  }
+
+  .cf-hero-desc {
+    max-width: 320px;
+  }
+
+  .cf-form-card {
+    min-height: 100%;
+  }
+
+  .cf-sticky-cta {
+    padding-inline: 24px;
+  }
+
+  .cf-cta-inner {
+    max-width: 1040px;
+  }
+}

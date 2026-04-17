@@ -1,0 +1,38 @@
+.auth-lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 2px solid #dad4c8;
+  border-radius: 9999px;
+  box-shadow: -3px 3px 0 #2e2f2e, inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.auth-lang-switch-btn {
+  min-width: 38px;
+  min-height: 30px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: #5b5c5a;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.auth-lang-switch-btn:hover {
+  background: #f1f1ef;
+  color: #2e2f2e;
+}
+
+.auth-lang-switch-btn--active,
+.auth-lang-switch-btn--active:hover {
+  background: #38671a;
+  color: #d6ffb7;
+}

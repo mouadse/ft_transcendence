@@ -1,0 +1,101 @@
+/* ── Nutrition Inner Layout ──────────────────────────────────────────── */
+
+.nut-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: #faf9f7;
+  position: relative;
+}
+
+.nut-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Extra bottom padding — contextual nav + main app nav stacked */
+  padding-bottom: 140px;
+}
+
+/* ── Contextual Bottom Nav (slides on top of AppLayout nav) ──────────── */
+
+.nut-ctx-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 150; /* above AppLayout nav (z-index: 100) */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 8px 28px;
+  background: #faf9f7;
+  border-top: 2px solid #dad4c8;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 20px rgba(46, 47, 46, 0.08);
+  transform: translateY(110%);
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.nut-ctx-nav--visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.nut-ctx-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 9999px;
+  color: #2e2f2e;
+  opacity: 0.45;
+  transition: transform 0.2s, opacity 0.2s, background 0.2s, color 0.2s;
+  min-width: 48px;
+}
+
+.nut-ctx-btn:hover {
+  opacity: 1;
+  transform: translateY(-3px) rotate(2deg);
+}
+
+.nut-ctx-btn--active {
+  background: #38671a;
+  color: #d6ffb7;
+  opacity: 1;
+  transform: translateY(-2px) rotate(-3deg);
+  box-shadow: -4px 4px 0 rgba(0, 0, 0, 1);
+}
+
+.nut-ctx-btn--close {
+  color: #5b5c5a;
+  opacity: 0.55;
+}
+
+.nut-ctx-btn--close:hover {
+  opacity: 1;
+  transform: translateY(-3px) rotate(-5deg);
+  color: #b02500;
+}
+
+.nut-ctx-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.nut-ctx-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  line-height: 1;
+}

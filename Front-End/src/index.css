@@ -1,0 +1,39 @@
+/* ── Global Reset ─────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: #faf9f7;
+  color: #2e2f2e;
+  font-family: 'Roobert', Arial, sans-serif;
+  font-feature-settings: "ss03", "ss10", "ss11", "ss12";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-feature-settings: "ss01", "ss03", "ss10", "ss11", "ss12";
+}
+
+img, svg { display: block; max-width: 100%; }
+
+button { font-family: inherit; }
+
+input, textarea {
+  font-family: inherit;
+  box-sizing: border-box;
+}
