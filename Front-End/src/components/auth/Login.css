@@ -418,6 +418,7 @@ html[dir='rtl'] .login-legal-links {
     grid-template-columns: 1fr 440px;
     align-items: center;
     gap: 80px;
+    padding-top: 80px;
   }
 
   .login-wordmark {
