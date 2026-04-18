@@ -2190,6 +2190,7 @@ function CardioBlock({ workoutId, onClose }) {
   const [distance, setDistance] = useState('');
   const [calories, setCalories] = useState('');
   const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const addCardioMutation = useAddCardio();
 
@@ -2202,19 +2203,36 @@ function CardioBlock({ workoutId, onClose }) {
     { id: 'other', label: 'Other', icon: 'sports' },
   ];
 
+  const durationValue = duration === '' ? null : Number(duration);
+  const distanceValue = distance === '' ? null : Number(distance);
+  const caloriesValue = calories === '' ? null : Number(calories);
+  const canSave = Number.isInteger(durationValue) && durationValue > 0;
+
   function handleSave() {
-    if (!duration && !distance) return;
+    if (!canSave) return;
     setSaving(true);
+    setSubmitError('');
     addCardioMutation.mutate({
       workout_id: workoutId,
       data: {
         modality: type,
-        duration_minutes: Number(duration) || null,
-        distance: Number(distance) || null,
-        calories_burned: Number(calories) || null,
+        duration_minutes: Number.isInteger(durationValue) ? durationValue : null,
+        distance: Number.isFinite(distanceValue) ? distanceValue : null,
+        calories_burned: Number.isFinite(caloriesValue) ? caloriesValue : null,
       },
     }, {
-      onSettled: () => { setSaving(false); onClose(); },
+      onSuccess: () => {
+        setSaving(false);
+        onClose();
+      },
+      onError: (error) => {
+        setSaving(false);
+        setSubmitError(
+          error?.response?.data?.detail
+          || error?.response?.data?.error
+          || 'Could not log cardio. Please check your values and try again.'
+        );
+      },
     });
   }
 
@@ -2247,11 +2265,18 @@ function CardioBlock({ workoutId, onClose }) {
               <label className="wk-eyebrow">DURATION (MIN)</label>
               <input
                 className="wk-set-input"
-                type="number"
-                inputMode="decimal"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="e.g. 30"
                 value={duration}
-                onChange={e => setDuration(e.target.value)}
+                onChange={e => {
+                  const nextValue = e.target.value;
+                  if (/^\d*$/.test(nextValue)) {
+                    setDuration(nextValue);
+                    if (submitError) setSubmitError('');
+                  }
+                }}
                 style={{ width: '100%', textAlign: 'left', fontSize: 18 }}
               />
             </div>
@@ -2261,9 +2286,14 @@ function CardioBlock({ workoutId, onClose }) {
                 className="wk-set-input"
                 type="number"
                 inputMode="decimal"
+                step="0.01"
+                min="0"
                 placeholder="e.g. 5.0"
                 value={distance}
-                onChange={e => setDistance(e.target.value)}
+                onChange={e => {
+                  setDistance(e.target.value);
+                  if (submitError) setSubmitError('');
+                }}
                 style={{ width: '100%', textAlign: 'left', fontSize: 18 }}
               />
             </div>
@@ -2273,20 +2303,30 @@ function CardioBlock({ workoutId, onClose }) {
                 className="wk-set-input"
                 type="number"
                 inputMode="numeric"
+                step="1"
+                min="0"
                 placeholder="e.g. 320"
                 value={calories}
-                onChange={e => setCalories(e.target.value)}
+                onChange={e => {
+                  setCalories(e.target.value);
+                  if (submitError) setSubmitError('');
+                }}
                 style={{ width: '100%', textAlign: 'left', fontSize: 18 }}
               />
             </div>
           </div>
         </div>
         <div className="wk-modal-footer">
+          {(submitError || (duration && !Number.isInteger(durationValue))) && (
+            <div style={{ marginBottom: 10, color: '#b02500', fontSize: 13, lineHeight: 1.4 }}>
+              {submitError || 'Duration must be a whole number of minutes.'}
+            </div>
+          )}
           <button
             className="wk-start-btn"
             style={{ width: '100%', background: '#3bd3fd', color: '#000' }}
             onClick={handleSave}
-            disabled={saving || (!duration && !distance)}
+            disabled={saving || !canSave}
           >
             {saving ? 'Saving...' : 'Log Cardio'}
           </button>
