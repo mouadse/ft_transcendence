@@ -574,7 +574,9 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	} else if req.RefreshToken != "" {
 		if err := s.authSvc.RevokeUserSession(userID, req.RefreshToken); err != nil {
 			if errors.Is(err, services.ErrSessionNotFound) {
-				writeError(w, http.StatusNotFound, err)
+				// Logout is idempotent: if the session is already revoked/deleted,
+				// treat it as a successful no-op.
+				writeJSON(w, http.StatusNoContent, nil)
 				return
 			}
 			if errors.Is(err, services.ErrUnauthorizedAccess) {

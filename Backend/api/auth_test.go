@@ -1206,7 +1206,7 @@ func TestLogoutRemovesSessionFromList(t *testing.T) {
 	}
 }
 
-func TestLogoutWithAlreadyRevokedTokenReturnsNotFound(t *testing.T) {
+func TestLogoutWithAlreadyRevokedTokenIsIdempotent(t *testing.T) {
 	t.Parallel()
 
 	db, handler := newTestApp(t)
@@ -1242,8 +1242,5 @@ func TestLogoutWithAlreadyRevokedTokenReturnsNotFound(t *testing.T) {
 
 	expectStatusAuth(t, handler, accessToken, http.MethodPost, "/v1/auth/logout", logoutReq, http.StatusNoContent)
 
-	errResp := requestErrorAuth(t, handler, accessToken, http.MethodPost, "/v1/auth/logout", logoutReq, http.StatusNotFound)
-	if errResp["error"] != "session not found" {
-		t.Errorf("expected 'session not found' error for already revoked token, got %q", errResp["error"])
-	}
+	expectStatusAuth(t, handler, accessToken, http.MethodPost, "/v1/auth/logout", logoutReq, http.StatusNoContent)
 }

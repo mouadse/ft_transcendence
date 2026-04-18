@@ -175,7 +175,11 @@ export function useAuth() {
         await authAPI.logout();
       }
     } catch (error) {
-      if (error?.response?.status !== 401) {
+      const status = error?.response?.status;
+      // Benign cases:
+      // - 401: already unauthenticated
+      // - 404: current session was already revoked (e.g. from sessions manager)
+      if (status !== 401 && status !== 404) {
         console.error('Logout API call failed:', error);
       }
     } finally {
