@@ -88,7 +88,7 @@ Add or update PDFs after the stack is already running, then rerun `make rag-inge
 
 Query the RAG system through the Go API once the stack is up:
 ```bash
-curl -X POST http://localhost:8082/v1/rag/query \
+curl -k -X POST https://localhost:8082/v1/rag/query \
   -H "Content-Type: application/json" \
   -d '{"query":"What is Kamal and what does it do?","include_sources":true}'
 ```
@@ -99,7 +99,7 @@ If RAG is saturating your machine, cap it with `.env` knobs: `RAG_API_CPUS`, `RA
 
 ## Monitoring & Management
 
-- **Swagger UI**: `http://localhost:8082/docs`
+- **Swagger UI**: `https://localhost:8082/docs`
 - **Exercise Library**: `http://localhost:8000`
 - **Coach UI**: `http://localhost:8503`
 - **Grafana**: `http://localhost:3000` (User: `admin`, Pass: `admin`)
@@ -110,7 +110,10 @@ If RAG is saturating your machine, cap it with `.env` knobs: `RAG_API_CPUS`, `RA
 - **pgAdmin**: `http://localhost:8081` via `make admin`
 
 When `../Front-End` is present:
-- **Front-End**: `http://localhost:5173`
+- **Front-End**: `https://localhost:5173`
+  - The frontend container serves TLS directly and proxies `/api` to the Go backend over HTTPS.
+  - By default it generates a self-signed certificate at startup.
+  - To use your own local cert, place `frontend.crt` and `frontend.key` in `../Front-End/docker/certs/`.
 
 ## Common Commands
 

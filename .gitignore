@@ -32,5 +32,6 @@ AgentSkills.worktrees
 
 command_claude.txt
 .codex
+Front-End/docker/certs/
 #Envirement file 
 .env

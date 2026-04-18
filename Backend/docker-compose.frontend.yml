@@ -5,18 +5,24 @@ services:
       dockerfile: Dockerfile
     container_name: fitness-frontend
     ports:
-      - "127.0.0.1:${FRONTEND_HOST_PORT:-5173}:8080"
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-5173}:8443"
+    volumes:
+      - ../Front-End/docker/certs:/run/frontend-certs:ro
     environment:
       FRONTEND_PUBLIC_API_URL: ${FRONTEND_PUBLIC_API_URL:-/api}
       FRONTEND_PUBLIC_EXERCISE_IMAGE_BASE_URL: ${FRONTEND_PUBLIC_EXERCISE_IMAGE_BASE_URL:-/exercise-lib}
       FRONTEND_PUBLIC_ADMIN_REALTIME_WS_AUTH_MODE: ${FRONTEND_PUBLIC_ADMIN_REALTIME_WS_AUTH_MODE:-query}
+      FRONTEND_TLS_CERT_FILE: ${FRONTEND_TLS_CERT_FILE:-/run/frontend-certs/frontend.crt}
+      FRONTEND_TLS_KEY_FILE: ${FRONTEND_TLS_KEY_FILE:-/run/frontend-certs/frontend.key}
+      FRONTEND_TLS_SELF_SIGNED_HOSTS: ${FRONTEND_TLS_SELF_SIGNED_HOSTS:-localhost,127.0.0.1}
+      FRONTEND_TLS_SELF_SIGNED_DAYS: ${FRONTEND_TLS_SELF_SIGNED_DAYS:-30}
     depends_on:
       app:
         condition: service_healthy
       exercise-lib:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:8443/healthz"]
       interval: 10s
       timeout: 3s
       retries: 5
