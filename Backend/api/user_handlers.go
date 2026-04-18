@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"fitness-tracker/models"
+	"fitness-tracker/services"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -210,7 +211,7 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.ActivityLevel != nil {
-		user.ActivityLevel = strings.TrimSpace(*req.ActivityLevel)
+		user.ActivityLevel = canonicalizeActivityLevel(*req.ActivityLevel)
 	}
 
 	if req.TDEE != nil {
@@ -219,8 +220,6 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		user.TDEE = *req.TDEE
-	} else if req.Weight != nil || req.Height != nil || req.ActivityLevel != nil || req.DateOfBirth != nil {
-		user.TDEE = user.CalculateTDEE()
 	}
 
 	if err := s.db.Save(&user).Error; err != nil {
@@ -315,4 +314,12 @@ func parseOptionalBirthDate(raw string) (*time.Time, error) {
 	}
 
 	return &parsed, nil
+}
+
+func canonicalizeActivityLevel(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if normalized, ok := services.ParseActivityLevel(trimmed); ok {
+		return string(normalized)
+	}
+	return trimmed
 }

@@ -33,6 +33,24 @@ const (
 	ActivityVeryActive       ActivityLevel = "very_active"
 )
 
+// ParseActivityLevel normalizes accepted activity level aliases to canonical values.
+func ParseActivityLevel(raw string) (ActivityLevel, bool) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "sedentary":
+		return ActivitySedentary, true
+	case "lightly_active", "lightly active", "light":
+		return ActivityLightlyActive, true
+	case "moderately_active", "moderately active", "moderate":
+		return ActivityModeratelyActive, true
+	case "active":
+		return ActivityActive, true
+	case "very_active", "very active", "very":
+		return ActivityVeryActive, true
+	default:
+		return "", false
+	}
+}
+
 // NutritionTargets represents calculated nutrition goals.
 type NutritionTargets struct {
 	Calories      int    `json:"calories"`
@@ -212,19 +230,8 @@ func (s *NutritionTargetService) GetUserNutritionTargets(userID uuid.UUID) (*Nut
 	}
 
 	// Parse activity level
-	var activityLevel ActivityLevel
-	switch strings.ToLower(user.ActivityLevel) {
-	case "sedentary":
-		activityLevel = ActivitySedentary
-	case "lightly_active", "lightly active":
-		activityLevel = ActivityLightlyActive
-	case "moderately_active", "moderately active":
-		activityLevel = ActivityModeratelyActive
-	case "active":
-		activityLevel = ActivityActive
-	case "very_active", "very active":
-		activityLevel = ActivityVeryActive
-	default:
+	activityLevel, ok := ParseActivityLevel(user.ActivityLevel)
+	if !ok {
 		activityLevel = ActivitySedentary
 	}
 

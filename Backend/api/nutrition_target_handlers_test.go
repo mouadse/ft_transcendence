@@ -67,6 +67,82 @@ func TestGetUserNutritionTargets(t *testing.T) {
 		}
 	})
 
+	t.Run("Goal Update Preserves Explicit TDEE Override", func(t *testing.T) {
+		goalAuth := registerTestUser(t, server, "goal-update@example.com", "Goal Update User", "password123")
+
+		db.Model(&models.User{}).Where("id = ?", goalAuth.User.ID).Updates(models.User{
+			DateOfBirth:   &dob,
+			Weight:        80,
+			Height:        180,
+			TDEE:          2600,
+			Goal:          "maintain",
+			ActivityLevel: "active",
+		})
+
+		updated := requestJSONAuth[models.User](t, server, goalAuth.AccessToken, http.MethodPatch, "/v1/users/"+goalAuth.User.ID.String(), map[string]any{
+			"goal": "lose_fat",
+		}, http.StatusOK)
+
+		if updated.TDEE != 2600 {
+			t.Fatalf("expected explicit tdee override 2600 to be preserved, got %d", updated.TDEE)
+		}
+
+		targets := requestJSONAuth[services.NutritionTargets](t, server, goalAuth.AccessToken, http.MethodGet, "/v1/users/"+goalAuth.User.ID.String()+"/nutrition-targets", nil, http.StatusOK)
+		if targets.Calories != updated.TDEE {
+			t.Fatalf("expected nutrition target calories %d to match persisted tdee %d", targets.Calories, updated.TDEE)
+		}
+		if !targets.IsOverride {
+			t.Fatalf("expected preserved tdee to remain an override")
+		}
+	})
+
+	t.Run("Patch Activity Level Alias Persists Canonical Value", func(t *testing.T) {
+		aliasAuth := registerTestUser(t, server, "alias@example.com", "Alias User", "password123")
+
+		db.Model(&models.User{}).Where("id = ?", aliasAuth.User.ID).Updates(models.User{
+			DateOfBirth:   &dob,
+			Weight:        80,
+			Height:        180,
+			TDEE:          0,
+			Goal:          "maintain",
+			ActivityLevel: "sedentary",
+		})
+
+		updated := requestJSONAuth[models.User](t, server, aliasAuth.AccessToken, http.MethodPatch, "/v1/users/"+aliasAuth.User.ID.String(), map[string]any{
+			"activity_level": "light",
+		}, http.StatusOK)
+
+		if updated.ActivityLevel != "lightly_active" {
+			t.Fatalf("expected canonical activity_level lightly_active, got %q", updated.ActivityLevel)
+		}
+
+		targets := requestJSONAuth[services.NutritionTargets](t, server, aliasAuth.AccessToken, http.MethodGet, "/v1/users/"+aliasAuth.User.ID.String()+"/nutrition-targets", nil, http.StatusOK)
+		if targets.ActivityLevel != "lightly_active" {
+			t.Fatalf("expected nutrition targets activity_level lightly_active, got %q", targets.ActivityLevel)
+		}
+		if targets.IsOverride {
+			t.Fatalf("expected alias update without tdee to remain non-override")
+		}
+	})
+
+	t.Run("Nutrition Targets Accept Legacy Activity Aliases", func(t *testing.T) {
+		legacyAliasAuth := registerTestUser(t, server, "legacy-alias@example.com", "Legacy Alias User", "password123")
+
+		db.Model(&models.User{}).Where("id = ?", legacyAliasAuth.User.ID).Updates(models.User{
+			DateOfBirth:   &dob,
+			Weight:        80,
+			Height:        180,
+			TDEE:          0,
+			Goal:          "maintain",
+			ActivityLevel: "moderate",
+		})
+
+		targets := requestJSONAuth[services.NutritionTargets](t, server, legacyAliasAuth.AccessToken, http.MethodGet, "/v1/users/"+legacyAliasAuth.User.ID.String()+"/nutrition-targets", nil, http.StatusOK)
+		if targets.ActivityLevel != "moderately_active" {
+			t.Fatalf("expected legacy alias to normalize to moderately_active, got %q", targets.ActivityLevel)
+		}
+	})
+
 	t.Run("Unauthorized cross-user access", func(t *testing.T) {
 		otherAuth := registerTestUser(t, server, "other@example.com", "Other User", "password123")
 
