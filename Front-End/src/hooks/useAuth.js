@@ -2,6 +2,7 @@ import { authStore, readSessionAccessToken } from '../stores/authStore';
 import { authAPI } from '../api/auth';
 import { usersAPI } from '../api/users';
 import { uiStore } from '../stores/uiStore';
+import { queryClient } from '../lib/queryClient';
 
 // ── Auth initialisation ──────────────────────────────────────
 // If we have a refresh_token but no access_token (e.g. after a page
@@ -183,6 +184,14 @@ export function useAuth() {
         console.error('Logout API call failed:', error);
       }
     } finally {
+      const cleanupTasks = [queryClient.cancelQueries()];
+      if (typeof queryClient.cancelMutations === 'function') {
+        cleanupTasks.push(queryClient.cancelMutations());
+      }
+
+      await Promise.allSettled(cleanupTasks);
+      queryClient.clear();
+
       authStore.getState().logout();
       localStorage.removeItem('um6p_fit_auth');
       localStorage.removeItem('um6p_fit_workout');

@@ -41,6 +41,8 @@ window.__CFIT_RUNTIME_CONFIG__ = {
 
 const { workoutStore } = await import('../stores/workoutStore');
 const { uiStore } = await import('../stores/uiStore');
+const { authStore } = await import('../stores/authStore');
+const { queryClient } = await import('../lib/queryClient');
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'error' });
@@ -51,6 +53,16 @@ beforeEach(() => {
     VITE_API_BASE_URL: 'http://localhost:8080',
   };
   localStorage.clear();
+  sessionStorage.clear();
+  queryClient.clear();
+  authStore.setState({
+    user: null,
+    access_token: null,
+    refresh_token: null,
+    two_factor_token: null,
+    two_factor_required: false,
+    auth_bootstrapped: true,
+  });
   workoutStore.setState({
     activeWorkout: null,
     restTimerActive: false,
@@ -67,6 +79,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  queryClient.clear();
   server.resetHandlers();
   vi.restoreAllMocks();
 });

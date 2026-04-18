@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { authAPI } from '../../../api/auth';
+import { useAuth } from '../../../hooks/useAuth';
 import { useI18n } from '../../../i18n/useI18n';
+import { hardRedirectToLogin } from '../../../utils/navigation';
 
 const SESSION_PAGE_SIZE = 100;
 
 export default function SessionsManager({ onClose }) {
   const { t, locale } = useI18n('settings');
+  const { logout } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,10 +85,18 @@ export default function SessionsManager({ onClose }) {
   const handleRevokeAll = async () => {
     const confirmed = window.confirm(t('revokeAllConfirm'));
     if (!confirmed) return;
+
     try {
       await authAPI.logout(true);
-      window.location.href = '/login';
+      await logout({ skipApiCall: true });
+      hardRedirectToLogin();
     } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 404) {
+        await logout({ skipApiCall: true });
+        hardRedirectToLogin();
+        return;
+      }
       setError(err.message || t('sessionsRevokeAllFailed'));
     }
   };
