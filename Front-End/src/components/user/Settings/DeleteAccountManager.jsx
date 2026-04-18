@@ -21,7 +21,13 @@ export default function DeleteAccountManager({ onClose }) {
       await accountAPI.deleteAccount();
       logout(true);
     } catch (err) {
-      setError(err.message || t('deleteAccountFailed'));
+      // Prefer the server's own error message from the response body; fall back
+      // to the generic axios message so nothing bubbles to the console unhandled.
+      const serverMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.detail;
+      setError(serverMessage || err.message || t('deleteAccountFailed'));
       setLoading(false);
     }
   };

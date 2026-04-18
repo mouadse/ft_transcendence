@@ -518,6 +518,7 @@ func TestProcessDeletionRequestHardDeletesSoftDeletedDependents(t *testing.T) {
 		&models.TwoFactorSecret{},
 		&models.RecoveryCode{},
 		&models.Notification{},
+		&models.UserPointsLog{},
 		&models.Exercise{},
 		&models.Workout{},
 		&models.WorkoutExercise{},
@@ -668,6 +669,35 @@ func TestProcessDeletionRequestHardDeletesSoftDeletedDependents(t *testing.T) {
 		t.Fatalf("create program assignment: %v", err)
 	}
 
+	pointsLog := models.UserPointsLog{
+		UserID:     user.ID,
+		Points:     10,
+		Reason:     "Workout logged (>=15 min)",
+		ReasonCode: "T1",
+		Pillar:     models.PillarTraining,
+		EarnedAt:   date,
+	}
+	if err := db.Create(&pointsLog).Error; err != nil {
+		t.Fatalf("create user points log: %v", err)
+	}
+
+	for name, model := range map[string]any{
+		"workout":            &workout,
+		"workout exercise":   &workoutExercise,
+		"meal":               &meal,
+		"weight entry":       &weightEntry,
+		"recipe":             &recipe,
+		"workout template":   &template,
+		"template exercise":  &templateExercise,
+		"workout program":    &program,
+		"program week":       &programWeek,
+		"program assignment": &programAssignment,
+	} {
+		if err := db.Delete(model).Error; err != nil {
+			t.Fatalf("soft delete %s: %v", name, err)
+		}
+	}
+
 	request := DeletionRequest{
 		UserID:      user.ID,
 		RequestedAt: date,
@@ -711,6 +741,7 @@ func TestProcessDeletionRequestHardDeletesSoftDeletedDependents(t *testing.T) {
 	assertDeleted("program_week", &models.ProgramWeek{}, "id = ?", programWeek.ID)
 	assertDeleted("program_session", &models.ProgramSession{}, "id = ?", programSession.ID)
 	assertDeleted("program_assignment", &models.ProgramAssignment{}, "id = ?", programAssignment.ID)
+	assertDeleted("user_points_log", &models.UserPointsLog{}, "id = ?", pointsLog.ID)
 
 	var processed DeletionRequest
 	if err := db.Where("id = ?", request.ID).First(&processed).Error; err != nil {

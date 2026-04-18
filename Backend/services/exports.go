@@ -962,7 +962,7 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// Delete all workout-related data
 		var workoutIDs []uuid.UUID
-		if err := tx.Model(&models.Workout{}).Where("user_id = ?", userID).Pluck("id", &workoutIDs).Error; err != nil {
+		if err := tx.Unscoped().Model(&models.Workout{}).Where("user_id = ?", userID).Pluck("id", &workoutIDs).Error; err != nil {
 			return err
 		}
 
@@ -972,7 +972,7 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 				return err
 			}
 			// Delete workout sets through workout exercises
-			workoutExerciseIDs := tx.Model(&models.WorkoutExercise{}).
+			workoutExerciseIDs := tx.Unscoped().Model(&models.WorkoutExercise{}).
 				Select("id").
 				Where("workout_id IN ?", workoutIDs)
 			if err := tx.Unscoped().Where("workout_exercise_id IN (?)", workoutExerciseIDs).Delete(&models.WorkoutSet{}).Error; err != nil {
@@ -987,7 +987,7 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 		}
 
 		// Delete meal foods
-		mealIDs := tx.Model(&models.Meal{}).
+		mealIDs := tx.Unscoped().Model(&models.Meal{}).
 			Select("id").
 			Where("user_id = ?", userID)
 		if err := tx.Unscoped().Where("meal_id IN (?)", mealIDs).Delete(&models.MealFood{}).Error; err != nil {
@@ -1018,7 +1018,7 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 		}
 
 		// Delete recipe items and recipes
-		recipeIDs := tx.Model(&models.Recipe{}).
+		recipeIDs := tx.Unscoped().Model(&models.Recipe{}).
 			Select("id").
 			Where("user_id = ?", userID)
 		if err := tx.Where("recipe_id IN (?)", recipeIDs).Delete(&models.RecipeItem{}).Error; err != nil {
@@ -1030,12 +1030,12 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 
 		// Delete workout templates (owner_id)
 		var templateIDs []uuid.UUID
-		if err := tx.Model(&models.WorkoutTemplate{}).Where("owner_id = ?", userID).Pluck("id", &templateIDs).Error; err != nil {
+		if err := tx.Unscoped().Model(&models.WorkoutTemplate{}).Where("owner_id = ?", userID).Pluck("id", &templateIDs).Error; err != nil {
 			return err
 		}
 		if len(templateIDs) > 0 {
 			// Delete template sets through template exercises
-			templateExerciseIDs := tx.Model(&models.WorkoutTemplateExercise{}).
+			templateExerciseIDs := tx.Unscoped().Model(&models.WorkoutTemplateExercise{}).
 				Select("id").
 				Where("template_id IN ?", templateIDs)
 			if err := tx.Unscoped().Where("template_exercise_id IN (?)", templateExerciseIDs).Delete(&models.WorkoutTemplateSet{}).Error; err != nil {
@@ -1056,12 +1056,12 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 
 		// Delete workout programs created by user (created_by)
 		var programIDs []uuid.UUID
-		if err := tx.Model(&models.WorkoutProgram{}).Where("created_by = ?", userID).Pluck("id", &programIDs).Error; err != nil {
+		if err := tx.Unscoped().Model(&models.WorkoutProgram{}).Where("created_by = ?", userID).Pluck("id", &programIDs).Error; err != nil {
 			return err
 		}
 		if len(programIDs) > 0 {
 			// Delete program sessions through weeks
-			weekIDs := tx.Model(&models.ProgramWeek{}).
+			weekIDs := tx.Unscoped().Model(&models.ProgramWeek{}).
 				Select("id").
 				Where("program_id IN ?", programIDs)
 			if err := tx.Unscoped().Where("week_id IN (?)", weekIDs).Delete(&models.ProgramSession{}).Error; err != nil {
@@ -1092,6 +1092,11 @@ func (s *ExportService) ProcessDeletionRequest(userID uuid.UUID) error {
 
 		// Delete notifications
 		if err := tx.Where("user_id = ?", userID).Delete(&models.Notification{}).Error; err != nil {
+			return err
+		}
+
+		// Delete gamification points log (FK → users.id, no soft-delete on this table)
+		if err := tx.Unscoped().Where("user_id = ?", userID).Delete(&models.UserPointsLog{}).Error; err != nil {
 			return err
 		}
 
