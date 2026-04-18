@@ -16,6 +16,30 @@ function isTerminalRefreshError(error) {
   return status === 400 || status === 401 || status === 403;
 }
 
+function resolveSkipLogoutApiCall(argument) {
+  if (typeof argument === 'boolean') {
+    return argument;
+  }
+
+  // Preserve `onClick={logout}` semantics by treating DOM/React events as a
+  // normal logout instead of interpreting the event object as a truthy flag.
+  if (
+    argument
+    && typeof argument === 'object'
+    && (
+      typeof argument.preventDefault === 'function'
+      || typeof argument.stopPropagation === 'function'
+      || 'nativeEvent' in argument
+      || 'currentTarget' in argument
+      || 'target' in argument
+    )
+  ) {
+    return false;
+  }
+
+  return Boolean(argument?.skipApiCall);
+}
+
 export function initAuth() {
   if (_initPromise) return _initPromise;
 
@@ -143,11 +167,17 @@ export function useAuth() {
     }
   };
 
-  const logoutUser = async () => {
+  const logoutUser = async (options) => {
+    const skipApiCall = resolveSkipLogoutApiCall(options);
+
     try {
-      await authAPI.logout();
+      if (!skipApiCall) {
+        await authAPI.logout();
+      }
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      if (error?.response?.status !== 401) {
+        console.error('Logout API call failed:', error);
+      }
     } finally {
       authStore.getState().logout();
       localStorage.removeItem('um6p_fit_auth');

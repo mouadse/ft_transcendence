@@ -251,12 +251,72 @@ export function useAddCardio() {
   });
 }
 
+function isWorkoutListQuery(queryKey) {
+  if (!Array.isArray(queryKey) || queryKey[0] !== 'workouts') return false;
+  if (queryKey.length === 1) return true;
+  const scope = queryKey[1];
+  return typeof scope === 'object' && scope !== null && !Array.isArray(scope);
+}
+
+function removeWorkoutFromCachedList(oldData, workout_id) {
+  if (!oldData) return oldData;
+  if (Array.isArray(oldData.workouts)) {
+    return { ...oldData, workouts: oldData.workouts.filter((workout) => workout.id !== workout_id) };
+  }
+  if (Array.isArray(oldData.data)) {
+    return { ...oldData, data: oldData.data.filter((workout) => workout.id !== workout_id) };
+  }
+  if (Array.isArray(oldData)) {
+    return oldData.filter((workout) => workout.id !== workout_id);
+  }
+  return oldData;
+}
+
+function getWorkoutListSnapshots(queryClient) {
+  return queryClient
+    .getQueriesData({ queryKey: ['workouts'] })
+    .filter(([queryKey]) => isWorkoutListQuery(queryKey));
+}
+
+function invalidateWorkoutLists(queryClient) {
+  return queryClient.invalidateQueries({
+    predicate: (query) => isWorkoutListQuery(query.queryKey),
+  });
+}
+
 export function useDeleteWorkout() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ workout_id }) => workoutsAPI.deleteWorkout(workout_id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+    onMutate: async ({ workout_id }) => {
+      const previousWorkoutLists = getWorkoutListSnapshots(queryClient);
+      const previousWorkoutDetail = queryClient.getQueryData(['workouts', workout_id]);
+
+      await queryClient.cancelQueries({ queryKey: ['workouts', workout_id], exact: true });
+      await queryClient.cancelQueries({
+        predicate: (query) => isWorkoutListQuery(query.queryKey),
+      });
+
+      previousWorkoutLists.forEach(([queryKey]) => {
+        queryClient.setQueryData(queryKey, (oldData) => removeWorkoutFromCachedList(oldData, workout_id));
+      });
+
+      return { previousWorkoutLists, previousWorkoutDetail, workout_id };
+    },
+    onError: (_error, { workout_id }, context) => {
+      context?.previousWorkoutLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+      if (context?.previousWorkoutDetail !== undefined) {
+        queryClient.setQueryData(['workouts', workout_id], context.previousWorkoutDetail);
+      }
+    },
+    onSuccess: (_data, { workout_id }) => {
+      queryClient.cancelQueries({ queryKey: ['workouts', workout_id], exact: true });
+    },
+    onSettled: (_data, _error, { workout_id }) => {
+      queryClient.cancelQueries({ queryKey: ['workouts', workout_id], exact: true });
+      invalidateWorkoutLists(queryClient);
     },
   });
 }

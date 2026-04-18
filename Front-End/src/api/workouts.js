@@ -337,8 +337,8 @@ export const workoutsAPI = {
   },
 
   // Semantic search
-  semanticSearchExercises: async (query) => {
-    const response = await client.post('/v1/exercises/search', { query });
+  semanticSearchExercises: async (data) => {
+    const response = await client.post('/v1/exercises/search', data);
     return response.data;
   },
 

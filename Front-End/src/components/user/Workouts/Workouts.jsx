@@ -1738,6 +1738,7 @@ function HistoryView({ onStartWorkout }) {
   const today = new Date();
   const [expandedEx, setExpandedEx] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletingWorkoutId, setDeletingWorkoutId] = useState(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => getDateKey(today));
   const [calendarCursor, setCalendarCursor] = useState(() => {
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1769,7 +1770,7 @@ function HistoryView({ onStartWorkout }) {
   });
 
   const latestWorkoutSummary = dayWorkouts[0] || null;
-  const activeWorkoutId = latestWorkoutSummary?.id || null;
+  const activeWorkoutId = deletingWorkoutId ? null : (latestWorkoutSummary?.id || null);
   const {
     data: selectedWorkoutDetailData,
     isLoading: selectedWorkoutDetailLoading,
@@ -2102,7 +2103,11 @@ function HistoryView({ onStartWorkout }) {
               <button
                 className="wk-discard-confirm"
                 onClick={() => {
-                  deleteWorkoutMutation.mutate({ workout_id: deleteTarget.id });
+                  setDeletingWorkoutId(deleteTarget.id);
+                  deleteWorkoutMutation.mutate(
+                    { workout_id: deleteTarget.id },
+                    { onSettled: () => setDeletingWorkoutId(null) },
+                  );
                   setExpandedEx(null);
                   setDeleteTarget(null);
                 }}
@@ -2745,13 +2750,13 @@ export function ActiveSession({ workoutId, initialExercises = [], programName = 
                 />
               ))}
             </div>
+
+            <button className="wk-add-ex-floating" onClick={() => setShowAddExercise(true)}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+              Add Exercise
+            </button>
           </>
         )}
-
-        <button className="wk-add-ex-floating" onClick={() => setShowAddExercise(true)}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
-          Add Exercise
-        </button>
       </div>
 
       {showRest && <RestTimer defaultSeconds={Math.max(15, Number(currentEx?.rest_time) || 60)} onSkip={() => setShowRest(false)} />}
@@ -3116,7 +3121,9 @@ export default function Workouts() {
     // Create workout in backend
     let workoutId = null;
     try {
-      const data = await createWorkoutMutation.mutateAsync({ name: workoutName });
+      const today = new Date();
+      const localDateStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      const data = await createWorkoutMutation.mutateAsync({ name: workoutName, date: localDateStr });
       workoutId = data?.id || data?.workout?.id;
     } catch {
       // Offline — continue locally

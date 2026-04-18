@@ -126,7 +126,7 @@ export default function OnboardingBasicInfo({ onNext, onBack, step = 1, totalSte
 
           {/* Age */}
           <div className="ob1-field">
-            <span className="ob1-field-label">Years on Earth</span>
+            <span className="ob1-field-label">Age</span>
             <div className={`ob1-input-wrap${errors.age ? ' ob1-input-wrap--error' : ''}`}>
               <input
                 type="number"
@@ -136,14 +136,14 @@ export default function OnboardingBasicInfo({ onNext, onBack, step = 1, totalSte
                 value={age}
                 onChange={e => { setAge(e.target.value); clearErr('age'); }}
               />
-              <span className="ob1-unit">Age</span>
+              <span className="ob1-unit">years</span>
             </div>
             {errors.age && <p className="ob1-error">{errors.age}</p>}
           </div>
 
           {/* Height */}
           <div className="ob1-field">
-            <span className="ob1-field-label">Vertical Reach</span>
+            <span className="ob1-field-label">Height</span>
             <div className={`ob1-input-wrap${errors.height ? ' ob1-input-wrap--error' : ''}`}>
               <input
                 type="number"
@@ -160,7 +160,7 @@ export default function OnboardingBasicInfo({ onNext, onBack, step = 1, totalSte
 
           {/* Weight — full width */}
           <div className="ob1-field ob1-field--full">
-            <span className="ob1-field-label">Current Mass</span>
+            <span className="ob1-field-label">Weight</span>
             <div className={`ob1-input-wrap${errors.weight ? ' ob1-input-wrap--error' : ''}`}>
               <input
                 type="number"

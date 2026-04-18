@@ -1,4 +1,4 @@
-.PHONY: help run up down restart logs ps config build clean test test-backend test-frontend db-shell admin rag-ingest rag-reingest rag-shell
+.PHONY: help run up down restart logs ps config build build-frontend clean test test-backend test-frontend db-shell admin rag-ingest rag-reingest rag-shell
 
 ifneq (,$(wildcard ./Backend/.env))
 include Backend/.env
@@ -45,6 +45,7 @@ help:
 	@echo "  make db-shell     Open psql in the postgres container"
 	@echo "  make test         Run backend Go test suites"
 	@echo "  make test-frontend Run the frontend Vitest suite"
+	@echo "  make build-frontend Rebuild and restart only the frontend container"
 	@echo "  make clean        Remove containers, volumes, and local images"
 
 run:
@@ -86,6 +87,10 @@ config:
 
 build:
 	$(COMPOSE) build --parallel $(BUILD_SERVICES)
+
+build-frontend:
+	$(COMPOSE) build frontend
+	$(COMPOSE) up -d --no-deps frontend
 
 admin:
 	$(COMPOSE) up -d pgadmin

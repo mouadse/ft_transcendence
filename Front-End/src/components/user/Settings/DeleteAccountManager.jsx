@@ -19,7 +19,7 @@ export default function DeleteAccountManager({ onClose }) {
       setLoading(true);
       setError(null);
       await accountAPI.deleteAccount();
-      logout();
+      logout(true);
     } catch (err) {
       setError(err.message || t('deleteAccountFailed'));
       setLoading(false);

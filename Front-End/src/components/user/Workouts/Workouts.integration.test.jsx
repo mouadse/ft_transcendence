@@ -31,11 +31,11 @@ const baseAssignment = {
   },
 };
 
-function renderWithProviders(ui) {
+function renderWithProviders(ui, { initialEntries = ['/'] } = {}) {
   const queryClient = createTestQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>{ui}</MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
     </QueryClientProvider>
   );
 }
@@ -185,5 +185,59 @@ describe('Workouts integration', () => {
     expect(captured.patchCalls).toBe(0);
     expect(captured.lastPostExerciseId).toBe('701');
     expect(captured.lastPostBody).toMatchObject({ set_number: 1, weight: 30, reps: 12, completed: true });
+  });
+
+  it('does not refetch deleted workout details after removing a history entry', async () => {
+    const user = userEvent.setup();
+    const startedAt = new Date().toISOString();
+    const completedAt = new Date(Date.now() + 45 * 60 * 1000).toISOString();
+    let deleted = false;
+    let detailCalls = 0;
+
+    server.use(
+      http.get('http://localhost:8080/v1/workouts', () =>
+        HttpResponse.json({
+          workouts: deleted
+            ? []
+            : [{ id: 'workout-1', name: 'Morning Session', type: 'strength', started_at: startedAt, completed_at: completedAt }],
+        })
+      ),
+      http.get('http://localhost:8080/v1/workouts/:workoutId', ({ params }) => {
+        detailCalls += 1;
+        if (deleted) {
+          return HttpResponse.json({ message: 'Workout not found' }, { status: 404 });
+        }
+        return HttpResponse.json({
+          id: params.workoutId,
+          name: 'Morning Session',
+          type: 'strength',
+          started_at: startedAt,
+          completed_at: completedAt,
+          workout_exercises: [
+            {
+              id: 'exercise-1',
+              exercise: { id: 'bench-1', name: 'Bench Press', muscle_group: 'Chest' },
+              workout_sets: [{ id: 'set-1', reps: 8, weight: 80 }],
+            },
+          ],
+        });
+      }),
+      http.delete('http://localhost:8080/v1/workouts/:workoutId', () => {
+        deleted = true;
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    renderWithProviders(<Workouts />, { initialEntries: ['/workouts/history'] });
+
+    await waitFor(() => expect(screen.getByText('Morning Session')).toBeInTheDocument());
+    await waitFor(() => expect(detailCalls).toBe(1));
+
+    await user.click(screen.getByRole('button', { name: 'Delete workout' }));
+    await screen.findByText('Delete Workout?');
+    await user.click(screen.getByRole('button', { name: /Delete$/ }));
+
+    await waitFor(() => expect(screen.getByText('No workout archive yet')).toBeInTheDocument());
+    expect(detailCalls).toBe(1);
   });
 });
