@@ -55,7 +55,7 @@ run:
 	$(COMPOSE) up -d --remove-orphans $(STACK_SERVICES)
 	@echo ""
 	@echo "Full stack endpoints:"
-	@echo "  Front-End        http://localhost:$(FRONTEND_HOST_PORT)"
+	@echo "  Front-End        https://localhost:$(FRONTEND_HOST_PORT)/"
 	@echo "  API              https://localhost:$(API_HOST_PORT)"
 	@echo "  Exercise Library http://localhost:$(EXERCISE_LIB_HOST_PORT)"
 	@echo "  Coach UI         http://localhost:$(COACH_UI_HOST_PORT)"
