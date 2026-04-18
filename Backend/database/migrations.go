@@ -103,6 +103,10 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
+	if err := backfillLeaderboardWorkoutPoints(db); err != nil {
+		return err
+	}
+
 	log.Println("all migrations completed successfully")
 	return nil
 }
@@ -391,4 +395,71 @@ func migrateNutrientIndexes(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+const leaderboardWorkoutPointsBackfillBatchSize = 500
+
+func backfillLeaderboardWorkoutPoints(db *gorm.DB) error {
+	if !db.Migrator().HasTable(&models.Workout{}) || !db.Migrator().HasTable(&models.UserPointsLog{}) {
+		return nil
+	}
+
+	missing, err := leaderboardWorkoutPointsBackfillNeeded(db)
+	if err != nil {
+		return err
+	}
+	if !missing {
+		return nil
+	}
+
+	log.Println("backfilling leaderboard workout points for legacy workouts")
+
+	var workouts []models.Workout
+	result := db.Model(&models.Workout{}).
+		Select("workouts.id, workouts.user_id, workouts.date, workouts.duration").
+		Joins("LEFT JOIN user_points_logs ON user_points_logs.source_entity_id = workouts.id AND user_points_logs.reason_code = ?", "T1").
+		Where("workouts.duration >= ?", 15).
+		Where("user_points_logs.id IS NULL").
+		Order("workouts.id asc").
+		FindInBatches(&workouts, leaderboardWorkoutPointsBackfillBatchSize, func(tx *gorm.DB, _ int) error {
+			logs := make([]models.UserPointsLog, 0, len(workouts))
+			for _, workout := range workouts {
+				workoutID := workout.ID
+				logs = append(logs, models.UserPointsLog{
+					UserID:         workout.UserID,
+					Points:         10,
+					Reason:         "Workout logged (>=15 min)",
+					ReasonCode:     "T1",
+					Pillar:         models.PillarTraining,
+					SourceEntityID: &workoutID,
+					EarnedAt:       workout.Date,
+				})
+			}
+
+			if len(logs) == 0 {
+				return nil
+			}
+
+			return tx.Create(&logs).Error
+		})
+	if result.Error != nil {
+		return fmt.Errorf("backfill leaderboard workout points: %w", result.Error)
+	}
+
+	return nil
+}
+
+func leaderboardWorkoutPointsBackfillNeeded(db *gorm.DB) (bool, error) {
+	var workouts []models.Workout
+	if err := db.Model(&models.Workout{}).
+		Select("workouts.id").
+		Joins("LEFT JOIN user_points_logs ON user_points_logs.source_entity_id = workouts.id AND user_points_logs.reason_code = ?", "T1").
+		Where("workouts.duration >= ?", 15).
+		Where("user_points_logs.id IS NULL").
+		Limit(1).
+		Find(&workouts).Error; err != nil {
+		return false, fmt.Errorf("check leaderboard workout points backfill: %w", err)
+	}
+
+	return len(workouts) > 0, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"fitness-tracker/database"
 	"fitness-tracker/models"
@@ -49,6 +50,64 @@ func TestSeedUsersBackfillsExistingRows(t *testing.T) {
 	}
 	if alex.Goal == "" || alex.ActivityLevel == "" || alex.TDEE == 0 {
 		t.Fatalf("expected seeded profile fields to be backfilled, got goal=%q activity_level=%q tdee=%d", alex.Goal, alex.ActivityLevel, alex.TDEE)
+	}
+}
+
+func TestSeedLeaderboardWorkoutPointsCreatesIdempotentLogs(t *testing.T) {
+	t.Parallel()
+
+	db := newSeedTestDB(t)
+
+	user := models.User{
+		Email:        "leaderboard@example.com",
+		PasswordHash: "x",
+		Name:         "Leaderboard User",
+	}
+	if err := db.Create(&user).Error; err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	workouts := []models.Workout{
+		{
+			UserID:   user.ID,
+			Date:     time.Now().UTC().AddDate(0, 0, -2).Truncate(24 * time.Hour),
+			Duration: 30,
+			Type:     "push",
+		},
+		{
+			UserID:   user.ID,
+			Date:     time.Now().UTC().AddDate(0, 0, -1).Truncate(24 * time.Hour),
+			Duration: 10,
+			Type:     "pull",
+		},
+	}
+	if err := db.Create(&workouts).Error; err != nil {
+		t.Fatalf("create workouts: %v", err)
+	}
+
+	if err := seedLeaderboardWorkoutPoints(db, workouts); err != nil {
+		t.Fatalf("seed leaderboard workout points: %v", err)
+	}
+	if err := seedLeaderboardWorkoutPoints(db, workouts); err != nil {
+		t.Fatalf("seed leaderboard workout points second pass: %v", err)
+	}
+
+	var logs []models.UserPointsLog
+	if err := db.Order("earned_at asc").Find(&logs).Error; err != nil {
+		t.Fatalf("load points logs: %v", err)
+	}
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 idempotent training points log, got %d", len(logs))
+	}
+
+	if logs[0].UserID != user.ID {
+		t.Fatalf("expected points log user %s, got %s", user.ID, logs[0].UserID)
+	}
+	if logs[0].Points != 10 || logs[0].ReasonCode != "T1" || logs[0].Pillar != models.PillarTraining {
+		t.Fatalf("unexpected points log payload: %+v", logs[0])
+	}
+	if !logs[0].EarnedAt.Equal(workouts[0].Date) {
+		t.Fatalf("expected earned_at %s, got %s", workouts[0].Date, logs[0].EarnedAt)
 	}
 }
 

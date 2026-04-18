@@ -3,6 +3,7 @@ package database_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"fitness-tracker/database"
 	"fitness-tracker/models"
@@ -222,6 +223,139 @@ func TestMigrateBackfillsExerciseLibIDForLegacyExercises(t *testing.T) {
 		if exercise.ExerciseLibID != wantLibID {
 			t.Fatalf("expected exercise %q to have exercise_lib_id %q, got %q", exercise.Name, wantLibID, exercise.ExerciseLibID)
 		}
+	}
+}
+
+func TestMigrateBackfillsMissingLeaderboardWorkoutPointsOnce(t *testing.T) {
+	t.Parallel()
+
+	db := openTestDB(t)
+
+	if err := database.Migrate(db); err != nil {
+		t.Fatalf("initial migrate database: %v", err)
+	}
+
+	user := models.User{
+		ID:           uuid.New(),
+		Email:        "leaderboard-migrate@example.com",
+		PasswordHash: "hash",
+		Name:         "Leaderboard Migrate User",
+	}
+	if err := db.Create(&user).Error; err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	firstDate := time.Date(2026, 4, 10, 0, 0, 0, 0, time.UTC)
+	secondDate := firstDate.AddDate(0, 0, 1)
+	thirdDate := firstDate.AddDate(0, 0, 2)
+
+	workouts := []models.Workout{
+		{UserID: user.ID, Date: firstDate, Duration: 45, Type: "push"},
+		{UserID: user.ID, Date: secondDate, Duration: 30, Type: "pull"},
+		{UserID: user.ID, Date: thirdDate, Duration: 10, Type: "legs"},
+	}
+	if err := db.Create(&workouts).Error; err != nil {
+		t.Fatalf("create workouts: %v", err)
+	}
+
+	secondWorkoutID := workouts[1].ID
+	existingLog := models.UserPointsLog{
+		UserID:         user.ID,
+		Points:         10,
+		Reason:         "Workout logged (>=15 min)",
+		ReasonCode:     "T1",
+		Pillar:         models.PillarTraining,
+		SourceEntityID: &secondWorkoutID,
+		EarnedAt:       secondDate,
+	}
+	if err := db.Create(&existingLog).Error; err != nil {
+		t.Fatalf("create existing points log: %v", err)
+	}
+
+	if err := database.Migrate(db); err != nil {
+		t.Fatalf("second migrate database: %v", err)
+	}
+	if err := database.Migrate(db); err != nil {
+		t.Fatalf("third migrate database: %v", err)
+	}
+
+	var logs []models.UserPointsLog
+	if err := db.Order("earned_at asc").Find(&logs).Error; err != nil {
+		t.Fatalf("load points logs: %v", err)
+	}
+
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 workout points logs after backfill, got %d", len(logs))
+	}
+
+	var firstWorkoutLogs int64
+	if err := db.Model(&models.UserPointsLog{}).
+		Where("source_entity_id = ? AND reason_code = ?", workouts[0].ID, "T1").
+		Count(&firstWorkoutLogs).Error; err != nil {
+		t.Fatalf("count first workout logs: %v", err)
+	}
+	if firstWorkoutLogs != 1 {
+		t.Fatalf("expected first workout to be backfilled once, got %d logs", firstWorkoutLogs)
+	}
+
+	var shortWorkoutLogs int64
+	if err := db.Model(&models.UserPointsLog{}).
+		Where("source_entity_id = ? AND reason_code = ?", workouts[2].ID, "T1").
+		Count(&shortWorkoutLogs).Error; err != nil {
+		t.Fatalf("count short workout logs: %v", err)
+	}
+	if shortWorkoutLogs != 0 {
+		t.Fatalf("expected short workout to remain without leaderboard points, got %d logs", shortWorkoutLogs)
+	}
+}
+
+func TestMigrateBackfillsLeaderboardWorkoutPointsAcrossBatches(t *testing.T) {
+	t.Parallel()
+
+	db := openTestDB(t)
+
+	if err := database.Migrate(db); err != nil {
+		t.Fatalf("initial migrate database: %v", err)
+	}
+
+	user := models.User{
+		ID:           uuid.New(),
+		Email:        "leaderboard-batch@example.com",
+		PasswordHash: "hash",
+		Name:         "Leaderboard Batch User",
+	}
+	if err := db.Create(&user).Error; err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	const eligibleWorkouts = 505
+
+	workouts := make([]models.Workout, 0, eligibleWorkouts)
+	baseDate := time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)
+	for i := 0; i < eligibleWorkouts; i++ {
+		workouts = append(workouts, models.Workout{
+			UserID:   user.ID,
+			Date:     baseDate.AddDate(0, 0, i),
+			Duration: 20,
+			Type:     "push",
+		})
+	}
+	if err := db.Create(&workouts).Error; err != nil {
+		t.Fatalf("create workouts: %v", err)
+	}
+
+	if err := database.Migrate(db); err != nil {
+		t.Fatalf("second migrate database: %v", err)
+	}
+
+	var count int64
+	if err := db.Model(&models.UserPointsLog{}).
+		Where("user_id = ? AND reason_code = ?", user.ID, "T1").
+		Count(&count).Error; err != nil {
+		t.Fatalf("count backfilled logs: %v", err)
+	}
+	if count != eligibleWorkouts {
+		t.Fatalf("expected %d workout points logs across batches, got %d", eligibleWorkouts, count)
 	}
 }
 

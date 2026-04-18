@@ -68,6 +68,10 @@ func main() {
 		log.Fatalf("failed to seed workouts: %v", err)
 	}
 
+	if err := seedLeaderboardWorkoutPoints(db, workouts); err != nil {
+		log.Fatalf("failed to seed leaderboard workout points: %v", err)
+	}
+
 	if err := seedWorkoutCardioEntries(db, source, users, workouts); err != nil {
 		log.Fatalf("failed to seed workout cardio entries: %v", err)
 	}
@@ -409,6 +413,39 @@ func seedWorkouts(db *gorm.DB, source *rand.Rand, users []models.User, exercises
 	}
 
 	return persistedWorkouts, nil
+}
+
+func seedLeaderboardWorkoutPoints(db *gorm.DB, workouts []models.Workout) error {
+	leaderboardSvc := services.NewLeaderboardService(db)
+
+	for _, workout := range workouts {
+		if workout.Duration < 15 {
+			continue
+		}
+
+		var existing models.UserPointsLog
+		err := db.Where("source_entity_id = ? AND reason_code = ?", workout.ID, "T1").First(&existing).Error
+		switch {
+		case err == nil:
+			continue
+		case !errors.Is(err, gorm.ErrRecordNotFound):
+			return err
+		}
+
+		if err := leaderboardSvc.AwardPoints(
+			workout.UserID,
+			10,
+			"Workout logged (>=15 min)",
+			"T1",
+			models.PillarTraining,
+			&workout.ID,
+			workout.Date,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func seedWorkoutCardioEntries(db *gorm.DB, source *rand.Rand, users []models.User, workouts []models.Workout) error {
