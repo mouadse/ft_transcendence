@@ -258,16 +258,56 @@ function isWorkoutListQuery(queryKey) {
   return typeof scope === 'object' && scope !== null && !Array.isArray(scope);
 }
 
+function filterWorkoutArray(workouts, workout_id) {
+  return workouts.filter((workout) => workout.id !== workout_id);
+}
+
 function removeWorkoutFromCachedList(oldData, workout_id) {
   if (!oldData) return oldData;
+  if (Array.isArray(oldData)) {
+    return filterWorkoutArray(oldData, workout_id);
+  }
+
+  const nextItems = Array.isArray(oldData.items)
+    ? filterWorkoutArray(oldData.items, workout_id)
+    : Array.isArray(oldData.workouts)
+      ? filterWorkoutArray(oldData.workouts, workout_id)
+      : Array.isArray(oldData.data)
+        ? filterWorkoutArray(oldData.data, workout_id)
+        : null;
+
+  if (nextItems) {
+    const nextData = {
+      ...oldData,
+      items: nextItems,
+      workouts: nextItems,
+      data: nextItems,
+    };
+
+    if (Array.isArray(oldData.raw)) {
+      nextData.raw = filterWorkoutArray(oldData.raw, workout_id);
+    } else if (oldData.raw && typeof oldData.raw === 'object') {
+      if (Array.isArray(oldData.raw.workouts)) {
+        nextData.raw = {
+          ...oldData.raw,
+          workouts: filterWorkoutArray(oldData.raw.workouts, workout_id),
+        };
+      } else if (Array.isArray(oldData.raw.data)) {
+        nextData.raw = {
+          ...oldData.raw,
+          data: filterWorkoutArray(oldData.raw.data, workout_id),
+        };
+      }
+    }
+
+    return nextData;
+  }
+
   if (Array.isArray(oldData.workouts)) {
-    return { ...oldData, workouts: oldData.workouts.filter((workout) => workout.id !== workout_id) };
+    return { ...oldData, workouts: filterWorkoutArray(oldData.workouts, workout_id) };
   }
   if (Array.isArray(oldData.data)) {
-    return { ...oldData, data: oldData.data.filter((workout) => workout.id !== workout_id) };
-  }
-  if (Array.isArray(oldData)) {
-    return oldData.filter((workout) => workout.id !== workout_id);
+    return { ...oldData, data: filterWorkoutArray(oldData.data, workout_id) };
   }
   return oldData;
 }

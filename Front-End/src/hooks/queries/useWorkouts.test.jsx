@@ -1,8 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { useExercises, useWorkoutList } from './useWorkouts';
+import { useDeleteWorkout, useExercises, useWorkoutList } from './useWorkouts';
 import { server } from '../../test/msw/server';
 import { createQueryWrapper, createTestQueryClient } from '../../test/queryClient';
+import { normalizeWorkoutListVM } from '../../utils/apiAdapters';
 
 describe('useWorkouts backend-contract alignment', () => {
   it('normalizes workout list payloads into workouts/items/data', async () => {
@@ -99,5 +100,65 @@ describe('useWorkouts backend-contract alignment', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(captured.page).toBe('2');
     expect(captured.limit).toBe('20');
+  });
+
+  it('keeps workout list aliases in sync during optimistic delete', async () => {
+    let resolveDelete;
+    const deleteRequest = new Promise((resolve) => {
+      resolveDelete = resolve;
+    });
+    const params = { limit: 50 };
+    const queryKey = ['workouts', params];
+
+    server.use(
+      http.delete('http://localhost:8080/v1/workouts/:workoutId', async () => {
+        await deleteRequest;
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(
+      queryKey,
+      normalizeWorkoutListVM({
+        workouts: [
+          { id: 301, type: 'strength' },
+          { id: 302, type: 'cardio' },
+        ],
+        metadata: { total: 2 },
+      })
+    );
+
+    const listHook = renderHook(() => useWorkoutList(params), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+    const { result } = renderHook(() => useDeleteWorkout(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    await waitFor(() => expect(listHook.result.current.data.workouts.map((workout) => workout.id)).toEqual([301, 302]));
+
+    act(() => {
+      result.current.mutate({ workout_id: 301 });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData(queryKey);
+      expect(cached.workouts.map((workout) => workout.id)).toEqual([302]);
+      expect(cached.items.map((workout) => workout.id)).toEqual([302]);
+      expect(cached.data.map((workout) => workout.id)).toEqual([302]);
+      expect(cached.items).toStrictEqual(cached.workouts);
+      expect(cached.data).toStrictEqual(cached.workouts);
+      expect(cached.raw.workouts.map((workout) => workout.id)).toEqual([302]);
+      expect(listHook.result.current.data.workouts.map((workout) => workout.id)).toEqual([302]);
+      expect(listHook.result.current.data.items.map((workout) => workout.id)).toEqual([302]);
+      expect(listHook.result.current.data.data.map((workout) => workout.id)).toEqual([302]);
+    });
+
+    act(() => {
+      resolveDelete();
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
 });

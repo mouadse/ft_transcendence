@@ -1738,7 +1738,6 @@ function HistoryView({ onStartWorkout }) {
   const today = new Date();
   const [expandedEx, setExpandedEx] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deletingWorkoutId, setDeletingWorkoutId] = useState(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => getDateKey(today));
   const [calendarCursor, setCalendarCursor] = useState(() => {
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1770,7 +1769,7 @@ function HistoryView({ onStartWorkout }) {
   });
 
   const latestWorkoutSummary = dayWorkouts[0] || null;
-  const activeWorkoutId = deletingWorkoutId ? null : (latestWorkoutSummary?.id || null);
+  const activeWorkoutId = latestWorkoutSummary?.id || null;
   const {
     data: selectedWorkoutDetailData,
     isLoading: selectedWorkoutDetailLoading,
@@ -2103,11 +2102,7 @@ function HistoryView({ onStartWorkout }) {
               <button
                 className="wk-discard-confirm"
                 onClick={() => {
-                  setDeletingWorkoutId(deleteTarget.id);
-                  deleteWorkoutMutation.mutate(
-                    { workout_id: deleteTarget.id },
-                    { onSettled: () => setDeletingWorkoutId(null) },
-                  );
+                  deleteWorkoutMutation.mutate({ workout_id: deleteTarget.id });
                   setExpandedEx(null);
                   setDeleteTarget(null);
                 }}

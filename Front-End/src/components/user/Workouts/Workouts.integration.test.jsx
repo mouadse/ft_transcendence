@@ -240,4 +240,89 @@ describe('Workouts integration', () => {
     await waitFor(() => expect(screen.getByText('No workout archive yet')).toBeInTheDocument());
     expect(detailCalls).toBe(1);
   });
+
+  it('keeps showing the replacement workout details while a same-day delete is pending', async () => {
+    const user = userEvent.setup();
+    const baseDay = new Date();
+    baseDay.setHours(0, 0, 0, 0);
+    const laterStartedAt = new Date(baseDay.getTime() + 12 * 60 * 60 * 1000).toISOString();
+    const laterCompletedAt = new Date(baseDay.getTime() + 13 * 60 * 60 * 1000).toISOString();
+    const earlierStartedAt = new Date(baseDay.getTime() + 8 * 60 * 60 * 1000).toISOString();
+    const earlierCompletedAt = new Date(baseDay.getTime() + 9 * 60 * 60 * 1000).toISOString();
+    let deleted = false;
+    let resolveDelete;
+    const pendingDelete = new Promise((resolve) => {
+      resolveDelete = resolve;
+    });
+
+    server.use(
+      http.get('http://localhost:8080/v1/workouts', () =>
+        HttpResponse.json({
+          workouts: deleted
+            ? [
+              { id: 'workout-2', name: 'Lunch Session', type: 'strength', started_at: earlierStartedAt, completed_at: earlierCompletedAt },
+            ]
+            : [
+              { id: 'workout-1', name: 'Morning Session', type: 'strength', started_at: laterStartedAt, completed_at: laterCompletedAt },
+              { id: 'workout-2', name: 'Lunch Session', type: 'strength', started_at: earlierStartedAt, completed_at: earlierCompletedAt },
+            ],
+        })
+      ),
+      http.get('http://localhost:8080/v1/workouts/:workoutId', ({ params }) => {
+        if (params.workoutId === 'workout-1') {
+          return HttpResponse.json({
+            id: 'workout-1',
+            name: 'Morning Session',
+            type: 'strength',
+            started_at: laterStartedAt,
+            completed_at: laterCompletedAt,
+            workout_exercises: [
+              {
+                id: 'exercise-1',
+                exercise: { id: 'bench-1', name: 'Bench Press', muscle_group: 'Chest' },
+                workout_sets: [{ id: 'set-1', reps: 8, weight: 80 }],
+              },
+            ],
+          });
+        }
+
+        return HttpResponse.json({
+          id: 'workout-2',
+          name: 'Lunch Session',
+          type: 'strength',
+          started_at: earlierStartedAt,
+          completed_at: earlierCompletedAt,
+          workout_exercises: [
+            {
+              id: 'exercise-2',
+              exercise: { id: 'squat-1', name: 'Back Squat', muscle_group: 'Legs' },
+              workout_sets: [{ id: 'set-2', reps: 5, weight: 120 }],
+            },
+          ],
+        });
+      }),
+      http.delete('http://localhost:8080/v1/workouts/:workoutId', async () => {
+        await pendingDelete;
+        deleted = true;
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    renderWithProviders(<Workouts />, { initialEntries: ['/workouts/history'] });
+
+    await waitFor(() => expect(screen.getByText('Morning Session')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Bench Press')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'Delete workout' }));
+    await screen.findByText('Delete Workout?');
+    await user.click(screen.getByRole('button', { name: /Delete$/ }));
+
+    await waitFor(() => expect(screen.getByText('Lunch Session')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Back Squat')).toBeInTheDocument());
+    expect(screen.queryByText('No exercises logged for this workout.')).not.toBeInTheDocument();
+
+    resolveDelete();
+
+    await waitFor(() => expect(screen.getByText('Lunch Session')).toBeInTheDocument());
+  });
 });
