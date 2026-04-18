@@ -7,6 +7,7 @@ import (
 
 	"fitness-tracker/models"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -36,6 +37,17 @@ type updateFoodRequest struct {
 	Fiber         *float64 `json:"fiber"`
 	Sugar         *float64 `json:"sugar"`
 	Sodium        *float64 `json:"sodium"`
+}
+
+type foodUsageRow struct {
+	FoodID     uuid.UUID `json:"food_id"`
+	UsageCount int64     `json:"usage_count"`
+}
+
+type foodListItem struct {
+	models.Food
+	MealUsageCount int64 `json:"meal_usage_count"`
+	CanDelete      bool  `json:"can_delete"`
 }
 
 func (s *Server) handleCreateFood(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +92,38 @@ func (s *Server) handleCreateFood(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListFoods(w http.ResponseWriter, r *http.Request) {
+	foods, paginated, err := s.listFoods(r)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, PaginatedResponse[models.Food]{
+		Data:     foods,
+		Metadata: paginated.Metadata,
+	})
+}
+
+func (s *Server) handleAdminListFoods(w http.ResponseWriter, r *http.Request) {
+	foods, paginated, err := s.listFoods(r)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	items, err := s.buildFoodListItems(foods)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, PaginatedResponse[foodListItem]{
+		Data:     items,
+		Metadata: paginated.Metadata,
+	})
+}
+
+func (s *Server) listFoods(r *http.Request) ([]models.Food, PaginatedResponse[models.Food], error) {
 	query := s.db.Model(&models.Food{})
 
 	if name := strings.TrimSpace(r.URL.Query().Get("name")); name != "" {
@@ -102,11 +146,45 @@ func (s *Server) handleListFoods(w http.ResponseWriter, r *http.Request) {
 	var foods []models.Food
 	paginated, err := paginate(query.Order("name asc"), page, limit, &foods)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, err)
-		return
+		return nil, PaginatedResponse[models.Food]{}, err
 	}
 
-	writeJSON(w, http.StatusOK, paginated)
+	return foods, paginated, nil
+}
+
+func (s *Server) buildFoodListItems(foods []models.Food) ([]foodListItem, error) {
+	usageByFoodID := map[uuid.UUID]int64{}
+	if len(foods) > 0 {
+		ids := make([]uuid.UUID, 0, len(foods))
+		for _, food := range foods {
+			ids = append(ids, food.ID)
+		}
+
+		var usageRows []foodUsageRow
+		if err := s.db.Model(&models.MealFood{}).
+			Select("food_id, COUNT(*) AS usage_count").
+			Where("food_id IN ?", ids).
+			Group("food_id").
+			Scan(&usageRows).Error; err != nil {
+			return nil, err
+		}
+
+		for _, row := range usageRows {
+			usageByFoodID[row.FoodID] = row.UsageCount
+		}
+	}
+
+	items := make([]foodListItem, 0, len(foods))
+	for _, food := range foods {
+		usageCount := usageByFoodID[food.ID]
+		items = append(items, foodListItem{
+			Food:           food,
+			MealUsageCount: usageCount,
+			CanDelete:      usageCount == 0,
+		})
+	}
+
+	return items, nil
 }
 
 func (s *Server) handleGetFood(w http.ResponseWriter, r *http.Request) {

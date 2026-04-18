@@ -271,6 +271,7 @@ func (s *Server) registerRoutes() {
 	admin("POST /v1/rag/cache/clear", s.handleRAGCacheClear)
 	admin("GET /v1/admin/workouts/exercises/popular", s.handleAdminPopularExercises)
 	admin("GET /v1/admin/nutrition/stats", s.handleAdminNutritionStats)
+	admin("GET /v1/admin/foods", s.handleAdminListFoods)
 	admin("GET /v1/admin/moderation/stats", s.handleAdminModerationStats)
 	admin("GET /v1/admin/system/health", s.handleAdminSystemHealth)
 	admin("GET /v1/admin/audit-logs", s.handleAdminListAuditLogs)

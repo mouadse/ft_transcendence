@@ -220,6 +220,10 @@ export const messages = {
           createTitle: 'Add Manual Food',
           description: 'Taha can only edit the fields the backend truly accepts: label, serving reference, and nutrition values.',
         },
+        deleteModal: {
+          title: 'Delete food?',
+          message: 'Remove "{name}" from the nutrition library? This action cannot be undone.',
+        },
         labels: {
           foodName: 'Food Name',
           brand: 'Brand',
@@ -228,6 +232,7 @@ export const messages = {
           servingUnit: 'Serving Unit',
           uncategorized: 'uncategorized',
           updatedAt: 'Updated {value}',
+          mealReferences: 'Used in {count} meal log(s)',
         },
         search: {
           placeholder: 'Search food name...',
@@ -256,6 +261,7 @@ export const messages = {
         errors: {
           saveFailed: 'Could not save this food right now.',
           deleteFailed: 'Could not delete this food right now.',
+          deleteBlockedByMeals: 'Cannot delete "{name}" because it is already used in meal history.',
           loadFailed: 'Could not load food library.',
         },
         confirm: {
@@ -1630,6 +1636,10 @@ export const messages = {
           createTitle: 'Ajouter un aliment manuel',
           description: 'Taha peut modifier uniquement les champs réellement acceptés par le backend : libellé, référence de portion et valeurs nutritionnelles.',
         },
+        deleteModal: {
+          title: 'Supprimer cet aliment ?',
+          message: 'Retirer "{name}" de la bibliothèque nutrition ? Cette action est irréversible.',
+        },
         labels: {
           foodName: "Nom de l'aliment",
           brand: 'Marque',
@@ -1638,6 +1648,7 @@ export const messages = {
           servingUnit: 'Unité de portion',
           uncategorized: 'non catégorisé',
           updatedAt: 'Mis à jour {value}',
+          mealReferences: 'Utilisé dans {count} journal(aux) de repas',
         },
         search: {
           placeholder: "Rechercher un aliment...",
@@ -1666,6 +1677,7 @@ export const messages = {
         errors: {
           saveFailed: "Impossible d'enregistrer cet aliment pour le moment.",
           deleteFailed: "Impossible de supprimer cet aliment pour le moment.",
+          deleteBlockedByMeals: 'Suppression impossible : "{name}" est déjà utilisé dans l’historique des repas.',
           loadFailed: 'Impossible de charger la bibliothèque des aliments.',
         },
         confirm: {
@@ -3040,6 +3052,10 @@ export const messages = {
           createTitle: 'إضافة طعام يدوي',
           description: 'يمكن لـ Taha تعديل الحقول التي يقبلها الخادم الخلفي فقط: الاسم المرجعي، مرجع الحصة، والقيم الغذائية.',
         },
+        deleteModal: {
+          title: 'حذف هذا الطعام؟',
+          message: 'إزالة "{name}" من مكتبة التغذية؟ لا يمكن التراجع عن هذا الإجراء.',
+        },
         labels: {
           foodName: 'اسم الطعام',
           brand: 'العلامة التجارية',
@@ -3048,6 +3064,7 @@ export const messages = {
           servingUnit: 'وحدة الحصة',
           uncategorized: 'غير مصنف',
           updatedAt: 'تم التحديث {value}',
+          mealReferences: 'مستخدم في {count} سجل(سجلات) وجبات',
         },
         search: {
           placeholder: 'ابحث عن اسم الطعام...',
@@ -3076,6 +3093,7 @@ export const messages = {
         errors: {
           saveFailed: 'تعذر حفظ هذا الطعام الآن.',
           deleteFailed: 'تعذر حذف هذا الطعام الآن.',
+          deleteBlockedByMeals: 'لا يمكن حذف "{name}" لأنه مستخدم بالفعل في سجل الوجبات.',
           loadFailed: 'تعذر تحميل مكتبة الطعام.',
         },
         confirm: {

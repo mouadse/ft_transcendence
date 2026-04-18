@@ -580,9 +580,12 @@ export default function AdminUserPrograms() {
 
   function handleDeleteProgram(programId) {
     if (!programId) return;
+
     deleteProgramMutation.mutate(programId, {
       onSuccess: () => {
-        if (selectedProgramId === programId) setSelectedProgramId(null);
+        if (selectedProgramId === programId) {
+          setSelectedProgramId(null);
+        }
       },
     });
   }

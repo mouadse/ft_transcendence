@@ -3738,6 +3738,41 @@ paths:
           $ref: "#/components/responses/Error"
         "403":
           $ref: "#/components/responses/Error"
+  /v1/admin/foods:
+    get:
+      tags: [Admin Dashboard]
+      summary: List foods with admin metadata
+      operationId: getAdminFoods
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: brand
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: source
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of foods with admin-only usage metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAdminFoods"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
   /v1/admin/moderation/stats:
     get:
       tags: [Admin Moderation]
@@ -6310,6 +6345,29 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Food"
+        metadata:
+          $ref: "#/components/schemas/PaginationMetadata"
+
+    AdminFood:
+      allOf:
+        - $ref: "#/components/schemas/Food"
+        - type: object
+          required: [meal_usage_count, can_delete]
+          properties:
+            meal_usage_count:
+              type: integer
+              format: int64
+            can_delete:
+              type: boolean
+
+    PaginatedAdminFoods:
+      type: object
+      required: [data, metadata]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFood"
         metadata:
           $ref: "#/components/schemas/PaginationMetadata"
 

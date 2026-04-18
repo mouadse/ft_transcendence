@@ -143,7 +143,7 @@ export const adminAPI = {
   },
 
   getFoods: async (params = {}) => {
-    const response = await client.get('/v1/foods', { params });
+    const response = await client.get('/v1/admin/foods', { params });
     return response.data;
   },
 

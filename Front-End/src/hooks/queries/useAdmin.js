@@ -224,8 +224,20 @@ export function useDeleteAdminProgram() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (program_id) => adminAPI.deleteProgram(program_id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'programs'] });
+    onSuccess: (_, program_id) => {
+      // Drop deleted program detail/assignment caches and only refresh list queries.
+      queryClient.removeQueries({ queryKey: ['admin', 'programs', program_id], exact: true });
+      queryClient.removeQueries({ queryKey: ['admin', 'program-assignments', program_id], exact: true });
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === 'admin' &&
+          query.queryKey[1] === 'programs' &&
+          query.queryKey.length === 3 &&
+          query.queryKey[2] &&
+          typeof query.queryKey[2] === 'object' &&
+          !Array.isArray(query.queryKey[2]),
+      });
     },
   });
 }

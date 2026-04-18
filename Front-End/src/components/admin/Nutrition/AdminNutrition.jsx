@@ -73,6 +73,16 @@ function macroTotal(food) {
   return toNumber(food?.protein) + toNumber(food?.carbohydrates) + toNumber(food?.fat);
 }
 
+function getMealUsageCount(food) {
+  return Number(food?.meal_usage_count || 0);
+}
+
+function isFoodDeleteBlocked(food) {
+  if (!food) return false;
+  if (food?.can_delete === false) return true;
+  return getMealUsageCount(food) > 0;
+}
+
 function buildExportRows(items, t) {
   const headers = [
     t('admin.nutrition.export.name'),
@@ -108,7 +118,7 @@ function buildExportRows(items, t) {
   return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
 }
 
-function DeleteFoodModal({ food, onClose, onConfirm, isPending, t }) {
+function DeleteFoodModal({ food, onClose, onConfirm, isPending, errorMessage, t }) {
   return (
     <div className="adm-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div className="adm-modal" style={{ maxWidth: 420, textAlign: 'center' }}>
@@ -119,6 +129,7 @@ function DeleteFoodModal({ food, onClose, onConfirm, isPending, t }) {
         <p style={{ color: '#5b5c5a', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
           {t('admin.nutrition.deleteModal.message', { name: food?.name || '' })}
         </p>
+        {errorMessage ? <div className="adm-nut-inline-error" style={{ margin: '0 0 12px' }}>{errorMessage}</div> : null}
         <div className="adm-form-actions" style={{ justifyContent: 'center' }}>
           <button type="button" className="adm-btn-ghost" onClick={onClose}>{t('common.actions.close')}</button>
           <button
@@ -260,6 +271,7 @@ export default function AdminNutrition() {
   const [modalOpen, setModalOpen] = useState(false);
   const [actionError, setActionError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const deferredSearch = useDeferredValue(search.trim());
 
@@ -352,6 +364,14 @@ export default function AdminNutrition() {
 
   const handleDeleteFood = (food) => {
     if (!food?.id) return;
+
+    if (isFoodDeleteBlocked(food)) {
+      setActionError(t('admin.nutrition.errors.deleteBlockedByMeals', { name: food?.name || '' }));
+      return;
+    }
+
+    setActionError('');
+    setDeleteError('');
     setDeleteTarget(food);
   };
 
@@ -360,9 +380,16 @@ export default function AdminNutrition() {
     try {
       await deleteFood.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
+      setDeleteError('');
       setActionError('');
     } catch (error) {
+      if (error?.response?.status === 409) {
+        setDeleteError(t('admin.nutrition.errors.deleteBlockedByMeals', { name: deleteTarget?.name || '' }));
+        return;
+      }
+
       setDeleteTarget(null);
+      setDeleteError('');
       setActionError(error?.response?.data?.error || t('admin.nutrition.errors.deleteFailed'));
     }
   };
@@ -473,6 +500,11 @@ export default function AdminNutrition() {
                         <p className="adm-nut-food-meta">
                           {[food.brand, categoryLabel(food.category, t)].filter(Boolean).join(' · ')}
                         </p>
+                        {getMealUsageCount(food) > 0 ? (
+                          <p className="adm-nut-food-meta" style={{ color: '#8f2508', marginTop: 4 }}>
+                            {t('admin.nutrition.labels.mealReferences', { count: getMealUsageCount(food) })}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   </td>
@@ -502,8 +534,14 @@ export default function AdminNutrition() {
                       <button className="adm-icon-btn adm-icon-btn--edit" onClick={() => handleOpenEdit(food)} title={t('admin.nutrition.actions.editFood')}>
                         <span className="material-symbols-outlined">edit</span>
                       </button>
-                      <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => handleDeleteFood(food)} title={t('admin.nutrition.actions.deleteFood')}>
-                        <span className="material-symbols-outlined">delete</span>
+                      <button
+                        className="adm-icon-btn adm-icon-btn--danger"
+                        onClick={() => handleDeleteFood(food)}
+                        title={isFoodDeleteBlocked(food) ? t('admin.nutrition.errors.deleteBlockedByMeals', { name: food?.name || '' }) : t('admin.nutrition.actions.deleteFood')}
+                        disabled={isFoodDeleteBlocked(food)}
+                        style={isFoodDeleteBlocked(food) ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+                      >
+                        <span className="material-symbols-outlined">{isFoodDeleteBlocked(food) ? 'lock' : 'delete'}</span>
                       </button>
                     </div>
                   </td>
@@ -545,9 +583,13 @@ export default function AdminNutrition() {
       {deleteTarget ? (
         <DeleteFoodModal
           food={deleteTarget}
-          onClose={() => setDeleteTarget(null)}
+          onClose={() => {
+            setDeleteTarget(null);
+            setDeleteError('');
+          }}
           onConfirm={handleConfirmDelete}
           isPending={deleteFood.isPending}
+          errorMessage={deleteError}
           t={t}
         />
       ) : null}
